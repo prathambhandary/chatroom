@@ -110,3 +110,14 @@ function removeMessage(id) {
     msgDiv.style.opacity = "0";
     setTimeout(() => msgDiv.remove(), 300);
 }
+
+socket.on("user_count", (count) => {
+    const el = document.getElementById("userCount");
+
+    el.style.opacity = "0.5";
+
+    setTimeout(() => {
+        el.innerText = `🟢 ${count} online`;
+        el.style.opacity = "1";
+    }, 150);
+});
