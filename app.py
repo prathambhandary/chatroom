@@ -12,7 +12,13 @@ user_last_message = {}
 users = {}
 
 def generate_username():
-    return f"WaveRider{random.randint(1000,9999)}"
+    with open("static/usernames.txt", "r") as f:
+        names = f.read().splitlines()
+        while True:
+            username = random.choice(names)
+            if username not in users.values():
+                break
+    return username
 
 @app.route("/")
 def index():
