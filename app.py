@@ -14,7 +14,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 messages = {}
 user_last_message = {}
 users = {}
-typing_users = set()
+typing_users = {}
 
 KILL_COOLDOWN = 50  # seconds
 VALID_REACTIONS = {"🔥", "😂", "💯"}
@@ -22,11 +22,12 @@ with open("static/usernames.txt", "r") as f:
         USERNAMES = f.read().splitlines()
 
 def generate_username():
-    while True:
-        username = random.choice(USERNAMES)
-        if username not in users.values():
-            break
-    return username
+    available = list(set(USERNAMES) - set(users.values()))
+
+    if available:
+        return random.choice(available)
+    
+    return f"user_{random.randint(1000,9999)}"
 
 @app.route("/")  
 def index():
@@ -39,9 +40,13 @@ def handle_connect():
     username = generate_username()
     print(f"### User connected: {username} ###")
 
-    users[request.sid] = username
     emit("assign_username", username)
-    socketio.emit("user_count", len(users))
+    with lock:
+        users[request.sid] = username
+        count = len(users)
+
+    socketio.emit("user_count", count)
+    socketio.emit("user_joined", {"username": username})
 
     with lock:
         active_messages = []
@@ -58,12 +63,15 @@ def handle_connect():
 
 @socketio.on("disconnect")
 def handle_disconnect():
-    username = users.pop(request.sid, None)
-    user_last_message.pop(request.sid, None)
-    typing_users.discard(request.sid)
+    with lock:
+        username = users.pop(request.sid, None)
+        user_last_message.pop(request.sid, None)
+        typing_users.pop(request.sid, None)
+        count = len(users)
     if username:
         print(f"--- User disconnected: {username} ---")
-        socketio.emit("user_count", len(users))
+        socketio.emit("user_count", count)
+        socketio.emit("user_left", {"username": username})
 
 @socketio.on("send_message")
 def handle_message(data):
@@ -100,13 +108,15 @@ def handle_message(data):
     with lock:
         messages[msg_id] = message
 
-    emit("new_message", message, broadcast=True)
+    msg_copy = message.copy()
+    msg_copy["remaining"] = KILL_COOLDOWN
+
+    emit("new_message", msg_copy, broadcast=True)
 
 @app.route("/messages")
 def get_messages():
     return {
         "messages": list(messages.values()),
-        "user_last_message": user_last_message,
         "users": list(users.values()),
         "user_count": len(users)
     }
@@ -119,28 +129,40 @@ def handle_react(data):
     if reaction not in VALID_REACTIONS:
         return
 
-    if msg_id in messages and time.time() - messages[msg_id]["timestamp"] < KILL_COOLDOWN:
-        with lock:
-            messages[msg_id]["reactions"][reaction] += 1
-        emit("update_reactions", {
-            "id": msg_id,
-            "reactions": messages[msg_id]["reactions"]
-        }, broadcast=True)
+    with lock:
+        if msg_id not in messages:
+            return
+
+        if time.time() - messages[msg_id]["timestamp"] > KILL_COOLDOWN:
+            return
+
+        messages[msg_id]["reactions"][reaction] += 1
+        updated = messages[msg_id]["reactions"]
+
+    emit("update_reactions", {
+        "id": msg_id,
+        "reactions": updated
+    }, broadcast=True)
 
 @socketio.on("typing")
 def handle_typing():
+    now = time.time()
     sid = request.sid
 
-    typing_users.add(sid)
-    socketio.emit("typing_count", len(typing_users))
+    with lock:
+        typing_users[sid] = now
 
-    # auto remove after 3 sec
-    def remove():
-        time.sleep(3)
-        typing_users.discard(sid)
-        socketio.emit("typing_count", len(typing_users))
+        # remove inactive users
+        typing_users_copy = {
+            s: t for s, t in typing_users.items()
+            if now - t < 3
+        }
+        typing_users.clear()
+        typing_users.update(typing_users_copy)
 
-    threading.Thread(target=remove, daemon=True).start()
+        count = len(typing_users)
+
+    socketio.emit("typing_count", count)
 
 def cleanup_messages():
     while True:
@@ -150,6 +172,12 @@ def cleanup_messages():
                 if now - messages[msg_id]["timestamp"] > KILL_COOLDOWN:
                     del messages[msg_id]
                     socketio.emit("delete_message", {"id": msg_id})
+            typing_users_copy = {
+                s: t for s, t in typing_users.items()
+                if now - t < 3
+            }
+            typing_users.clear()
+            typing_users.update(typing_users_copy)
         time.sleep(5)
 
 if __name__ == "__main__":
