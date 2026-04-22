@@ -130,7 +130,7 @@ def cleanup_messages():
             for msg_id in list(messages.keys()):
                 if now - messages[msg_id]["timestamp"] > KILL_COOLDOWN:
                     del messages[msg_id]
-                    socketio.emit("delete_message", {"id": msg_id}, broadcast=True)
+                    socketio.emit("delete_message", {"id": msg_id})
         time.sleep(5)
 
 if __name__ == "__main__":
