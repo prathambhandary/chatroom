@@ -121,3 +121,25 @@ socket.on("user_count", (count) => {
         el.style.opacity = "1";
     }, 150);
 });
+
+socket.on("typing_count", (count) => {
+    const el = document.getElementById("typingStatus");
+
+    if (count === 0) {
+        el.innerText = "";
+    } else {
+        el.innerText = `🔥 ${count} typing...`;
+    }
+});
+
+let typingTimeout;
+
+document.getElementById("msgInput").addEventListener("input", () => {
+    socket.emit("typing");
+
+    clearTimeout(typingTimeout);
+
+    typingTimeout = setTimeout(() => {
+        // stops naturally via backend timeout
+    }, 3000);
+});

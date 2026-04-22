@@ -14,6 +14,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 messages = {}
 user_last_message = {}
 users = {}
+typing_users = set()
 
 KILL_COOLDOWN = 50  # seconds
 VALID_REACTIONS = {"🔥", "😂", "💯"}
@@ -59,6 +60,7 @@ def handle_connect():
 def handle_disconnect():
     username = users.pop(request.sid, None)
     user_last_message.pop(request.sid, None)
+    typing_users.discard(request.sid)
     if username:
         print(f"--- User disconnected: {username} ---")
         socketio.emit("user_count", len(users))
@@ -124,6 +126,21 @@ def handle_react(data):
             "id": msg_id,
             "reactions": messages[msg_id]["reactions"]
         }, broadcast=True)
+
+@socketio.on("typing")
+def handle_typing():
+    sid = request.sid
+
+    typing_users.add(sid)
+    socketio.emit("typing_count", len(typing_users))
+
+    # auto remove after 3 sec
+    def remove():
+        time.sleep(3)
+        typing_users.discard(sid)
+        socketio.emit("typing_count", len(typing_users))
+
+    threading.Thread(target=remove, daemon=True).start()
 
 def cleanup_messages():
     while True:
