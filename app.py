@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 import time
 import random
@@ -9,6 +9,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # In-memory storage
 messages = {}
 user_last_message = {}
+users = {}
 
 def generate_username():
     return f"WaveRider{random.randint(1000,9999)}"
@@ -21,6 +22,7 @@ def index():
 def handle_connect():
     username = generate_username()
     print(f"### User connected: {username} ###")
+    users[request.sid] = username
     emit("assign_username", username)
 
 @socketio.on("send_message")
