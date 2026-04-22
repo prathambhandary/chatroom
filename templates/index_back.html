@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firewave</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   FIREWAVE — FULL CSS SYSTEM
+   Philosophy: 90% dark, 10% fire. Embers in darkness.
+   ============================================================ */
+
+:root {
+  /* Base */
+  --bg:           #090d18;
+  --surface:      #0f1623;
+  --surface2:     #161f30;
+  --border:       #1e2b40;
+
+  /* Fire */
+  --fire:         #ff6b00;
+  --fire-soft:    #ff8a3d;
+  --fire-dim:     #cc5200;
+  --fire-glow:    rgba(255, 107, 0, 0.18);
+  --fire-pulse:   rgba(255, 107, 0, 0.35);
+
+  /* Text */
+  --text:         #e2e8f0;
+  --text-muted:   #5a6a82;
+  --text-dim:     #2e3d55;
+
+  /* Accent */
+  --cyan:         #38bdf8;
+  --green:        #22c55e;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  overflow: hidden;
+}
+
+/* ── EMBER BACKGROUND ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255,107,0,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 80% 50%, rgba(255,45,85,0.03) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 30% at 20% 80%, rgba(255,107,0,0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── NOISE OVERLAY ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+#topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 54px;
+  background: rgba(9, 13, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 var(--fire-glow), 0 4px 24px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  z-index: 100;
+}
+
+#topbar-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#topbar-logo .flame-icon {
+  font-size: 20px;
+  animation: flamePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes flamePulse {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(255,107,0,0.5)); transform: scale(1); }
+  50%       { filter: drop-shadow(0 0 10px rgba(255,107,0,0.9)); transform: scale(1.1); }
+}
+
+.topbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}
+
+#username {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--fire-soft);
+  background: rgba(255,107,0,0.08);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,107,0,0.2);
+}
+
+#userCount {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: opacity 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#userCount .dot {
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--green);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+#typingStatus {
+  font-size: 12px;
+  color: var(--fire);
+  font-family: 'Space Mono', monospace;
+  min-width: 120px;
+  transition: opacity 0.4s;
+}
+
+.topbar-spacer { flex: 1; }
+
+/* ============================================================
+   NOTIFICATIONS
+   ============================================================ */
+#notifications {
+  position: fixed;
+  top: 66px;
+  right: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.notice {
+  background: var(--surface2);
+  border-left: 2px solid var(--fire);
+  padding: 6px 12px;
+  border-radius: 0 6px 6px 0;
+  font-size: 12px;
+  font-family: 'Space Mono', monospace;
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translateX(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  white-space: nowrap;
+}
+
+.notice.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ============================================================
+   CHAT STREAM — THE MAIN STAGE
+   ============================================================ */
+#chat {
+  position: fixed;
+  top: 54px;
+  left: 0;
+  right: 0;
+  bottom: 70px;
+  overflow: hidden;
+  padding: 16px 20px 0;
+  z-index: 1;
+}
+
+/* The inner column that drifts upward */
+#chat-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  right: 20px;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── MESSAGE CARD ── */
+.message {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px 8px;
+  max-width: 680px;
+  opacity: 0;
+  transform: translateY(16px) scale(0.98);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+  will-change: transform, opacity;
+  position: relative;
+}
+
+.message.spawned {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.message:hover {
+  box-shadow: 0 0 16px var(--fire-glow);
+  border-color: rgba(255,107,0,0.25);
+}
+
+.message.decaying {
+  opacity: 0.35;
+  filter: blur(0.5px);
+}
+
+.message.dying {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.97);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* Own message accent */
+.message.mine {
+  background: rgba(255,107,0,0.06);
+  border-color: rgba(255,107,0,0.2);
+}
+
+.message.mine::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, var(--fire), transparent);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Hot message (many reactions) */
+.message.hot {
+  border-color: rgba(255,107,0,0.45);
+  box-shadow: 0 0 24px rgba(255,107,0,0.2), inset 0 0 12px rgba(255,107,0,0.04);
+  animation: heatPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes heatPulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(255,107,0,0.15); }
+  50%       { box-shadow: 0 0 32px rgba(255,107,0,0.35); }
+}
+
+/* ── MESSAGE HEADER ── */
+.msg-header {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.msg-username {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.msg-username.mine-name {
+  color: var(--fire-soft);
+}
+
+.msg-you-badge {
+  font-size: 9px;
+  font-family: 'Space Mono', monospace;
+  color: var(--fire-dim);
+  background: rgba(255,107,0,0.12);
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+}
+
+/* ── MESSAGE TEXT ── */
+.msg-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+/* ── REACTIONS ── */
+.reactions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.reaction-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 9px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.18s ease;
+  user-select: none;
+  font-family: 'Space Mono', monospace;
+}
+
+.reaction-btn:hover {
+  background: rgba(255,107,0,0.12);
+  border-color: rgba(255,107,0,0.4);
+  color: var(--fire-soft);
+  transform: scale(1.08);
+  box-shadow: 0 0 8px rgba(255,107,0,0.3);
+}
+
+.reaction-btn:active {
+  transform: scale(0.95);
+}
+
+.reaction-btn.popped {
+  animation: reactionPop 0.3s cubic-bezier(0.34, 1.6, 0.64, 1);
+}
+
+@keyframes reactionPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.reaction-count {
+  font-size: 11px;
+  min-width: 12px;
+  text-align: center;
+}
+
+/* ── PARTICLE BURST ── */
+@keyframes particleFly {
+  0%   { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+}
+
+.particle {
+  position: absolute;
+  pointer-events: none;
+  font-size: 10px;
+  animation: particleFly 0.6s ease-out forwards;
+  z-index: 50;
+}
+
+/* ── DRIFT UPWARD SYSTEM ── */
+/* Each message in the inner container has a fixed position
+   The container itself gets translated up when new messages push in */
+
+/* ============================================================
+   INPUT LAYER
+   ============================================================ */
+#inputBox {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: rgba(9, 13, 24, 0.95);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -1px 0 var(--fire-glow), 0 -8px 32px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  z-index: 100;
+}
+
+#msgInput {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: 'Syne', sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  caret-color: var(--fire);
+}
+
+#msgInput::placeholder {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+#msgInput:focus {
+  border-color: rgba(255,107,0,0.4);
+  box-shadow: 0 0 0 3px rgba(255,107,0,0.08), inset 0 0 0 1px rgba(255,107,0,0.1);
+}
+
+#sendBtn {
+  background: linear-gradient(135deg, #ff6b00 0%, #ff2d55 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  color: white;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
+  box-shadow: 0 2px 12px rgba(255,107,0,0.35);
+  white-space: nowrap;
+}
+
+#sendBtn:hover:not(:disabled) {
+  filter: brightness(1.15);
+  box-shadow: 0 2px 20px rgba(255,107,0,0.55);
+  transform: translateY(-1px);
+}
+
+#sendBtn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+
+#sendBtn:disabled {
+  background: var(--surface2);
+  box-shadow: none;
+  cursor: not-allowed;
+  color: var(--text-dim);
+}
+
+/* ── COOLDOWN ── */
+#cooldown {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--fire-dim);
+  min-width: 52px;
+  text-align: center;
+}
+
+/* ── COOLDOWN RING ── */
+#cooldown-ring {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: none;
+}
+
+#cooldown-ring svg {
+  transform: rotate(-90deg);
+}
+
+#cooldown-ring circle {
+  fill: none;
+  stroke: var(--fire);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 88;
+  stroke-dashoffset: 88;
+  transition: stroke-dashoffset 1s linear;
+}
+
+#cooldown-ring.active {
+  display: block;
+}
+
+#cooldown-text-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--fire);
+}
+
+/* ── CHAR COUNTER ── */
+#charCount {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  min-width: 28px;
+  text-align: right;
+  transition: color 0.2s;
+}
+
+#charCount.warn  { color: var(--fire-soft); }
+#charCount.limit { color: #ff2d55; }
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+#emptyState {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+#emptyState .empty-icon {
+  font-size: 48px;
+  opacity: 0.15;
+  display: block;
+  margin-bottom: 12px;
+  animation: flamePulse 3s ease-in-out infinite;
+}
+
+#emptyState p {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 0.06em;
+}
+
+/* ============================================================
+   SCROLLBAR (hidden but functional)
+   ============================================================ */
+::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<!-- ── TOP BAR ── -->
+<div id="topbar">
+  <div id="topbar-logo">
+    <span class="flame-icon">🔥</span>
+    Firewave
+  </div>
+  <div class="topbar-divider"></div>
+  <span id="username"></span>
+  <div class="topbar-divider"></div>
+  <span id="userCount"><span class="dot"></span> 0 online</span>
+  <div class="topbar-spacer"></div>
+  <span id="typingStatus"></span>
+</div>
+
+<!-- ── NOTIFICATIONS ── -->
+<div id="notifications"></div>
+
+<!-- ── CHAT STREAM ── -->
+<div id="chat">
+  <div id="chat-inner">
+    <!-- messages injected here -->
+  </div>
+  <div id="emptyState">
+    <span class="empty-icon">🔥</span>
+    <p>stream is quiet... be the first spark</p>
+  </div>
+</div>
+
+<!-- ── INPUT ── -->
+<div id="inputBox">
+  <input id="msgInput" placeholder="say something..." maxlength="80" autocomplete="off" spellcheck="false">
+  <span id="charCount">80</span>
+  <div id="cooldown-ring">
+    <svg width="32" height="32" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" id="ring-circle"/>
+    </svg>
+    <div id="cooldown-text-inner" id="cdNum"></div>
+  </div>
+  <button id="sendBtn" onclick="sendMessage()">Send</button>
+</div>
+
+<!-- ── SCRIPT ── -->
+<script>
+/* ============================================================
+   FIREWAVE FRONTEND — FULL IMPLEMENTATION
+   Drops in over socket.io backend. For preview, runs in demo mode.
+   ============================================================ */
+
+// ── DEMO / SOCKET BRIDGE ──────────────────────────────────────
+// If socket.io is available, use it. Otherwise demo mode.
+let socket = null;
+let username = "you";
+
+const DEMO_MODE = typeof io === 'undefined';
+
+if (!DEMO_MODE) {
+  socket = io();
+}
+
+// Unified event emitter
+function socketEmit(evt, data) {
+  if (socket) socket.emit(evt, data);
+}
+function socketOn(evt, fn) {
+  if (socket) socket.on(evt, fn);
+  // demo binds are set up separately
+}
+
+// ── STATE ─────────────────────────────────────────────────────
+let cooldownActive = false;
+let lastTypingEmit = 0;
+const COOLDOWN_SEC = 5;
+const MAX_VISIBLE = 80;
+
+// ── DOM REFS ──────────────────────────────────────────────────
+const chatInner    = document.getElementById('chat-inner');
+const msgInput     = document.getElementById('msgInput');
+const sendBtn      = document.getElementById('sendBtn');
+const charCountEl  = document.getElementById('charCount');
+const typingEl     = document.getElementById('typingStatus');
+const userCountEl  = document.getElementById('userCount');
+const usernameEl   = document.getElementById('username');
+const notifsBox    = document.getElementById('notifications');
+const emptyState   = document.getElementById('emptyState');
+const ringEl       = document.getElementById('cooldown-ring');
+const ringCircle   = document.getElementById('ring-circle');
+const cdNum        = document.getElementById('cooldown-text-inner');
+
+// ── USERNAME ──────────────────────────────────────────────────
+socketOn('assign_username', (name) => {
+  username = name;
+  usernameEl.textContent = name;
+});
+
+// ── USER COUNT ────────────────────────────────────────────────
+socketOn('user_count', (count) => {
+  userCountEl.style.opacity = '0.4';
+  setTimeout(() => {
+    userCountEl.innerHTML = `<span class="dot"></span> ${count} online`;
+    userCountEl.style.opacity = '1';
+  }, 150);
+});
+
+// ── TYPING ────────────────────────────────────────────────────
+socketOn('typing_count', (count) => {
+  if (count === 0) {
+    typingEl.style.opacity = '0';
+    setTimeout(() => { typingEl.textContent = ''; typingEl.style.opacity = '1'; }, 300);
+  } else {
+    typingEl.textContent = `🔥 ${count} typing...`;
+    typingEl.style.opacity = '1';
+  }
+});
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────
+socketOn('user_joined', (d) => showNotice(`+ ${d.username} joined`));
+socketOn('user_left',   (d) => showNotice(`– ${d.username} left`));
+
+function showNotice(text) {
+  const div = document.createElement('div');
+  div.className = 'notice';
+  div.textContent = text;
+  notifsBox.appendChild(div);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => div.classList.add('show'));
+  });
+  if (notifsBox.children.length > 5) notifsBox.removeChild(notifsBox.firstChild);
+  setTimeout(() => {
+    div.classList.remove('show');
+    setTimeout(() => div.remove(), 300);
+  }, 3000);
+}
+
+// ── MESSAGES ─────────────────────────────────────────────────
+socketOn('initial_messages', (msgs) => {
+  msgs.forEach(msg => {
+    renderMessage(msg);
+    setTimeout(() => removeMessage(msg.id), msg.remaining * 1000);
+  });
+});
+
+socketOn('new_message', (msg) => {
+  renderMessage(msg);
+  scheduleDecay(msg.id, 50000);
+});
+
+socketOn('delete_message', (d) => removeMessage(d.id));
+
+socketOn('update_reactions', (d) => updateReactions(d.id, d.reactions));
+
+// ── RENDER MESSAGE ────────────────────────────────────────────
+function renderMessage(msg) {
+  if (document.getElementById(msg.id)) return;
+  hideEmpty();
+
+  const isMe = msg.username === username;
+  const div = document.createElement('div');
+  div.className = 'message' + (isMe ? ' mine' : '');
+  div.id = msg.id;
+
+  div.innerHTML = `
+    <div class="msg-header">
+      <span class="msg-username ${isMe ? 'mine-name' : ''}">${escHtml(msg.username)}</span>
+      ${isMe ? '<span class="msg-you-badge">you</span>' : ''}
+    </div>
+    <div class="msg-text">${escHtml(msg.text)}</div>
+    <div class="reactions" id="rx-${msg.id}">
+      ${buildReactionHTML(msg.id, msg.reactions)}
+    </div>
+  `;
+
+  chatInner.appendChild(div);
+
+  // spawn animation
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => div.classList.add('spawned'));
+  });
+
+  // ember glow on spawn
+  setTimeout(() => div.classList.add('spawned'), 20);
+
+  // drift upward: shift the container
+  driftUp();
+
+  // prune DOM
+  pruneMessages();
+}
+
+// Drift the message stream upward smoothly
+function driftUp() {
+  const msgs = chatInner.querySelectorAll('.message');
+  const chatH = document.getElementById('chat').offsetHeight;
+  const contentH = chatInner.scrollHeight;
+
+  if (contentH > chatH) {
+    const overflow = contentH - chatH;
+    chatInner.style.marginBottom = '0';
+    chatInner.style.transform = `translateY(-${overflow}px)`;
+  }
+}
+
+function pruneMessages() {
+  const msgs = chatInner.querySelectorAll('.message');
+  if (msgs.length > MAX_VISIBLE) {
+    for (let i = 0; i < msgs.length - MAX_VISIBLE; i++) {
+      msgs[i].remove();
+    }
+  }
+}
+
+// ── DECAY / REMOVAL ───────────────────────────────────────────
+function scheduleDecay(id, totalMs) {
+  const decayStart = totalMs * 0.8;
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('decaying');
+  }, decayStart);
+  setTimeout(() => removeMessage(id), totalMs);
+}
+
+function removeMessage(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('dying');
+  setTimeout(() => {
+    el.remove();
+    if (chatInner.querySelectorAll('.message').length === 0) showEmpty();
+    driftUp();
+  }, 500);
+}
+
+// ── REACTIONS ────────────────────────────────────────────────
+function buildReactionHTML(msgId, reactions) {
+  return Object.entries(reactions).map(([emoji, count]) => `
+    <button class="reaction-btn" onclick="react('${msgId}','${emoji}',this)">
+      <span>${emoji}</span>
+      <span class="reaction-count">${count}</span>
+    </button>
+  `).join('');
+}
+
+function react(id, reaction, btn) {
+  socketEmit('react', { id, reaction });
+
+  // optimistic pop
+  if (btn) {
+    btn.classList.remove('popped');
+    void btn.offsetWidth;
+    btn.classList.add('popped');
+    fireParticle(btn, reaction);
+  }
+}
+
+function updateReactions(id, reactions) {
+  const rxDiv = document.getElementById('rx-' + id);
+  if (!rxDiv) return;
+  rxDiv.innerHTML = buildReactionHTML(id, reactions);
+
+  // heat check
+  const total = Object.values(reactions).reduce((a, b) => a + b, 0);
+  const msgEl = document.getElementById(id);
+  if (msgEl) msgEl.classList.toggle('hot', total >= 5);
+}
+
+// ── PARTICLE BURST ────────────────────────────────────────────
+function fireParticle(anchor, emoji) {
+  const rect = anchor.getBoundingClientRect();
+  const count = 4;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.textContent = emoji;
+    const angle = (Math.random() * 360) * (Math.PI / 180);
+    const dist  = 30 + Math.random() * 40;
+    p.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+    p.style.setProperty('--dy', `${Math.sin(angle) * dist - 20}px`);
+    p.style.left = (rect.left + rect.width / 2) + 'px';
+    p.style.top  = (rect.top  + rect.height / 2) + 'px';
+    p.style.position = 'fixed';
+    p.style.animationDelay = (i * 40) + 'ms';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 700);
+  }
+}
+
+// ── SEND MESSAGE ─────────────────────────────────────────────
+function sendMessage() {
+  const text = msgInput.value.trim();
+  if (cooldownActive || !text) return;
+
+  socketEmit('send_message', { text });
+
+  // demo: show own message immediately
+  if (DEMO_MODE) {
+    const fakeMsg = {
+      id: 'msg-' + Date.now(),
+      username,
+      text,
+      reactions: { '🔥': 0, '😂': 0, '💯': 0 }
+    };
+    renderMessage(fakeMsg);
+    scheduleDecay(fakeMsg.id, 50000);
+  }
+
+  msgInput.value = '';
+  updateCharCount();
+  startCooldown();
+}
+
+// ── COOLDOWN ─────────────────────────────────────────────────
+function startCooldown() {
+  cooldownActive = true;
+  sendBtn.disabled = true;
+  ringEl.classList.add('active');
+
+  let t = COOLDOWN_SEC;
+  const circumference = 88;
+  ringCircle.style.strokeDashoffset = circumference;
+  cdNum.textContent = t;
+
+  // animate ring drain
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      ringCircle.style.strokeDashoffset = '0';
+    });
+  });
+
+  const interval = setInterval(() => {
+    t--;
+    cdNum.textContent = t > 0 ? t : '';
+    if (t <= 0) {
+      clearInterval(interval);
+      cooldownActive = false;
+      sendBtn.disabled = false;
+      ringEl.classList.remove('active');
+      ringCircle.style.strokeDashoffset = circumference;
+    }
+  }, 1000);
+}
+
+// ── TYPING SIGNAL ────────────────────────────────────────────
+msgInput.addEventListener('input', () => {
+  updateCharCount();
+  const now = Date.now();
+  if (now - lastTypingEmit > 1000) {
+    socketEmit('typing');
+    lastTypingEmit = now;
+  }
+});
+
+msgInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) sendMessage();
+});
+
+function updateCharCount() {
+  const remaining = 80 - msgInput.value.length;
+  charCountEl.textContent = remaining;
+  charCountEl.className = remaining <= 10 ? 'limit' : remaining <= 20 ? 'warn' : '';
+}
+
+// ── EMPTY STATE ───────────────────────────────────────────────
+function hideEmpty() { emptyState.style.display = 'none'; }
+function showEmpty()  { emptyState.style.display = 'block'; }
+
+// ── HTML ESCAPE ───────────────────────────────────────────────
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── DEMO MODE: SIMULATE ACTIVITY ─────────────────────────────
+if (DEMO_MODE) {
+  usernameEl.textContent = 'you';
+  username = 'you';
+
+  const fakeUsers  = ['nova','kira','echo','blaze','ori','vex','mira','flux'];
+  const fakeMsgs   = [
+    'this stream is 🔥🔥',
+    'anyone else see that?',
+    'where did it go lmao',
+    'first time here, loving it',
+    'ok firewave is kinda insane',
+    'reacted to everything 💯',
+    'it just disappeared mid-type',
+    'the glow effect is so good',
+    'this is better than discord',
+    'why is it so satisfying to watch',
+    'everything fades. poetic.',
+    'sending one more before it dies'
+  ];
+
+  let onlineCount = 7;
+  userCountEl.innerHTML = `<span class="dot"></span> ${onlineCount} online`;
+
+  // seed some messages
+  function spawnDemo() {
+    const user = fakeUsers[Math.floor(Math.random() * fakeUsers.length)];
+    const text = fakeMsgs[Math.floor(Math.random() * fakeMsgs.length)];
+    const id   = 'demo-' + Date.now() + Math.random();
+
+    renderMessage({
+      id, username: user, text,
+      reactions: {
+        '🔥': Math.floor(Math.random() * 4),
+        '😂': Math.floor(Math.random() * 2),
+        '💯': Math.floor(Math.random() * 3)
+      }
+    });
+
+    scheduleDecay(id, 20000 + Math.random() * 25000);
+  }
+
+  // initial seed
+  for (let i = 0; i < 5; i++) {
+    setTimeout(spawnDemo, i * 600);
+  }
+
+  // ongoing stream
+  setInterval(() => {
+    if (Math.random() < 0.6) spawnDemo();
+  }, 3500);
+
+  // typing simulation
+  setInterval(() => {
+    const count = Math.floor(Math.random() * 4);
+    if (count === 0) {
+      typingEl.style.opacity = '0';
+      setTimeout(() => { typingEl.textContent = ''; typingEl.style.opacity = '1'; }, 300);
+    } else {
+      typingEl.textContent = `🔥 ${count} typing...`;
+    }
+  }, 2800);
+
+  // user join/leave
+  setInterval(() => {
+    const r = Math.random();
+    if (r < 0.3) showNotice(`+ ${fakeUsers[Math.floor(Math.random() * fakeUsers.length)]} joined`);
+    else if (r < 0.5) showNotice(`– ${fakeUsers[Math.floor(Math.random() * fakeUsers.length)]} left`);
+  }, 5000);
+
+  // random reaction bumps
+  setInterval(() => {
+    const msgs = chatInner.querySelectorAll('.message:not(.decaying)');
+    if (!msgs.length) return;
+    const pick = msgs[Math.floor(Math.random() * msgs.length)];
+    const emojis = ['🔥','😂','💯'];
+    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+    const rxDiv = pick.querySelector('.reactions');
+    if (!rxDiv) return;
+    const btns = rxDiv.querySelectorAll('.reaction-btn');
+    const emojiMap = {'🔥':0,'😂':1,'💯':2};
+    const idx = emojiMap[emoji];
+    if (btns[idx]) {
+      const countSpan = btns[idx].querySelector('.reaction-count');
+      if (countSpan) {
+        countSpan.textContent = parseInt(countSpan.textContent || 0) + 1;
+        btns[idx].classList.remove('popped');
+        void btns[idx].offsetWidth;
+        btns[idx].classList.add('popped');
+        // check heat
+        let total = 0;
+        rxDiv.querySelectorAll('.reaction-count').forEach(s => total += parseInt(s.textContent || 0));
+        pick.classList.toggle('hot', total >= 5);
+      }
+    }
+  }, 2200);
+}
+</script>
+
+</body>
+</html>
