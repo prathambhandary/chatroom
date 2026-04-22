@@ -46,22 +46,24 @@ socket.on("new_message", (msg) => {
     div.className = "message";
     div.id = msg.id;
 
-    div.innerHTML = `
-        <b>${msg.username}</b>: ${msg.text}
-        <div class="reactions">
-            ${Object.keys(msg.reactions).map(r =>
-                `<span onclick="react('${msg.id}','${r}')">${r} ${msg.reactions[r]}</span>`
-            ).join("")}
-        </div>
-    `;
+    // div.innerHTML = `
+    //     <b>${msg.username}</b>: ${msg.text}
+    //     <div class="reactions">
+    //         ${Object.keys(msg.reactions).map(r =>
+    //             `<span onclick="react('${msg.id}','${r}')">${r} ${msg.reactions[r]}</span>`
+    //         ).join("")}
+    //     </div>
+    // `;
 
-    chat.prepend(div);
+    // chat.prepend(div);
+
+    renderMessage(msg);
 
     // Auto delete after 50s
     setTimeout(() => {
         div.style.opacity = "0";
         setTimeout(() => div.remove(), 500);
-    }, 50000);
+    }, msg.remaining * 1000);
 });
 
 function react(id, reaction) {
@@ -78,3 +80,38 @@ socket.on("update_reactions", (data) => {
         `<span onclick="react('${data.id}','${r}')">${r} ${data.reactions[r]}</span>`
     ).join("");
 });
+
+socket.on("delete_message", (data) => {
+    const msgDiv = document.getElementById(data.id);
+    if (!msgDiv) return;
+
+    msgDiv.style.opacity = "0";
+    setTimeout(() => msgDiv.remove(), 300);
+});
+
+socket.on("initial_messages", (msgs) => {
+    const chat = document.getElementById("chat");
+
+    msgs.forEach(msg => {
+        renderMessage(msg);
+    });
+});
+
+function renderMessage(msg) {
+    const chat = document.getElementById("chat");
+
+    const div = document.createElement("div");
+    div.className = "message";
+    div.id = msg.id;
+
+    div.innerHTML = `
+        <b>${msg.username}</b>: ${msg.text}
+        <div class="reactions">
+            ${Object.keys(msg.reactions).map(r =>
+                `<span onclick="react('${msg.id}','${r}')">${r} ${msg.reactions[r]}</span>`
+            ).join("")}
+        </div>
+    `;
+
+    chat.prepend(div);
+}
