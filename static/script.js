@@ -40,30 +40,14 @@ function startCooldown() {
 }
 
 socket.on("new_message", (msg) => {
-    const chat = document.getElementById("chat");
-
-    const div = document.createElement("div");
-    div.className = "message";
-    div.id = msg.id;
-
-    // div.innerHTML = `
-    //     <b>${msg.username}</b>: ${msg.text}
-    //     <div class="reactions">
-    //         ${Object.keys(msg.reactions).map(r =>
-    //             `<span onclick="react('${msg.id}','${r}')">${r} ${msg.reactions[r]}</span>`
-    //         ).join("")}
-    //     </div>
-    // `;
-
-    // chat.prepend(div);
 
     renderMessage(msg);
 
     // Auto delete after 50s
-    setTimeout(() => {
-        div.style.opacity = "0";
-        setTimeout(() => div.remove(), 500);
-    }, msg.remaining * 1000);
+    // setTimeout(() => {
+    //     div.style.opacity = "0";
+    //     setTimeout(() => div.remove(), 500);
+    // }, msg.remaining * 1000);
 });
 
 function react(id, reaction) {
@@ -90,10 +74,13 @@ socket.on("delete_message", (data) => {
 });
 
 socket.on("initial_messages", (msgs) => {
-    const chat = document.getElementById("chat");
-
     msgs.forEach(msg => {
         renderMessage(msg);
+
+        // ⏳ delete after remaining time
+        setTimeout(() => {
+            removeMessage(msg.id);
+        }, msg.remaining * 1000);
     });
 });
 
@@ -114,4 +101,12 @@ function renderMessage(msg) {
     `;
 
     chat.prepend(div);
+}
+
+function removeMessage(id) {
+    const msgDiv = document.getElementById(id);
+    if (!msgDiv) return;
+
+    msgDiv.style.opacity = "0";
+    setTimeout(() => msgDiv.remove(), 300);
 }
