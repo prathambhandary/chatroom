@@ -2,19 +2,25 @@ const socket = io();
 
 let username = "";
 let cooldown = false;
+let lastTypingEmit = 0;
 
+// ======================
+// 🔥 USER ASSIGN
+// ======================
 socket.on("assign_username", (name) => {
     username = name;
     document.getElementById("username").innerText = `(${name})`;
 });
 
+// ======================
+// 🚀 SEND MESSAGE
+// ======================
 function sendMessage() {
     const input = document.getElementById("msgInput");
 
     if (cooldown || input.value.trim() === "") return;
 
     socket.emit("send_message", {
-        username: username,
         text: input.value
     });
 
@@ -22,6 +28,9 @@ function sendMessage() {
     startCooldown();
 }
 
+// ======================
+// ⏳ COOLDOWN
+// ======================
 function startCooldown() {
     cooldown = true;
     let time = 5;
@@ -39,17 +48,82 @@ function startCooldown() {
     }, 1000);
 }
 
-socket.on("new_message", (msg) => {
+// ======================
+// 🧠 RENDER MESSAGE
+// ======================
+function renderMessage(msg) {
+    if (document.getElementById(msg.id)) return; // prevent duplicate
 
+    const chat = document.getElementById("chat");
+
+    const div = document.createElement("div");
+    div.className = "message";
+    div.id = msg.id;
+
+    const isMe = msg.username === username;
+
+    div.innerHTML = `
+        <b ${isMe ? 'style="color:#22c55e"' : ""}>
+            ${msg.username}${isMe ? " (you)" : ""}
+        </b>: ${msg.text}
+        <div class="reactions">
+            ${Object.keys(msg.reactions).map(r =>
+                `<span onclick="react('${msg.id}','${r}')">${r} ${msg.reactions[r]}</span>`
+            ).join("")}
+        </div>
+    `;
+
+    // ✨ smooth entry animation
+    div.style.transform = "translateY(10px)";
+    div.style.opacity = "0";
+
+    chat.prepend(div);
+
+    setTimeout(() => {
+        div.style.transform = "translateY(0)";
+        div.style.opacity = "1";
+    }, 10);
+}
+
+// ======================
+// 🔁 INITIAL SYNC
+// ======================
+socket.on("new_message", (msg) => {
     renderMessage(msg);
 
-    // Auto delete after 50s
-    // setTimeout(() => {
-    //     div.style.opacity = "0";
-    //     setTimeout(() => div.remove(), 500);
-    // }, msg.remaining * 1000);
+    if (msg.remaining) {
+        const dyingTime = Math.max(0, (msg.remaining - 5) * 1000);
+
+        setTimeout(() => {
+            const el = document.getElementById(msg.id);
+            if (el) el.classList.add("dying");
+        }, dyingTime);
+
+        setTimeout(() => {
+            removeMessage(msg.id);
+        }, msg.remaining * 1000);
+    }
 });
 
+// ======================
+// ❌ REMOVE MESSAGE
+// ======================
+function removeMessage(id) {
+    const msgDiv = document.getElementById(id);
+    if (!msgDiv) return;
+
+    msgDiv.style.opacity = "0";
+    setTimeout(() => msgDiv.remove(), 300);
+}
+
+// backend-driven delete
+socket.on("delete_message", (data) => {
+    removeMessage(data.id);
+}); 
+
+// ======================
+// 🔥 REACTIONS
+// ======================
 function react(id, reaction) {
     socket.emit("react", { id, reaction });
 }
@@ -65,52 +139,9 @@ socket.on("update_reactions", (data) => {
     ).join("");
 });
 
-socket.on("delete_message", (data) => {
-    const msgDiv = document.getElementById(data.id);
-    if (!msgDiv) return;
-
-    msgDiv.style.opacity = "0";
-    setTimeout(() => msgDiv.remove(), 300);
-});
-
-socket.on("initial_messages", (msgs) => {
-    msgs.forEach(msg => {
-        renderMessage(msg);
-
-        // ⏳ delete after remaining time
-        setTimeout(() => {
-            removeMessage(msg.id);
-        }, msg.remaining * 1000);
-    });
-});
-
-function renderMessage(msg) {
-    const chat = document.getElementById("chat");
-
-    const div = document.createElement("div");
-    div.className = "message";
-    div.id = msg.id;
-
-    div.innerHTML = `
-        <b>${msg.username}</b>: ${msg.text}
-        <div class="reactions">
-            ${Object.keys(msg.reactions).map(r =>
-                `<span onclick="react('${msg.id}','${r}')">${r} ${msg.reactions[r]}</span>`
-            ).join("")}
-        </div>
-    `;
-
-    chat.prepend(div);
-}
-
-function removeMessage(id) {
-    const msgDiv = document.getElementById(id);
-    if (!msgDiv) return;
-
-    msgDiv.style.opacity = "0";
-    setTimeout(() => msgDiv.remove(), 300);
-}
-
+// ======================
+// 👥 USER COUNT
+// ======================
 socket.on("user_count", (count) => {
     const el = document.getElementById("userCount");
 
@@ -122,6 +153,9 @@ socket.on("user_count", (count) => {
     }, 150);
 });
 
+// ======================
+// ✍️ TYPING INDICATOR
+// ======================
 socket.on("typing_count", (count) => {
     const el = document.getElementById("typingStatus");
 
@@ -132,14 +166,52 @@ socket.on("typing_count", (count) => {
     }
 });
 
-let typingTimeout;
-
+// throttle typing event
 document.getElementById("msgInput").addEventListener("input", () => {
-    socket.emit("typing");
+    const now = Date.now();
 
-    clearTimeout(typingTimeout);
+    if (now - lastTypingEmit > 1000) {
+        socket.emit("typing");
+        lastTypingEmit = now;
+    }
+});
 
-    typingTimeout = setTimeout(() => {
-        // stops naturally via backend timeout
+// ======================
+// 🔔 NOTIFICATIONS
+// ======================
+function showNotice(text) {
+    const box = document.getElementById("notifications");
+
+    const div = document.createElement("div");
+    div.className = "notice";
+    div.innerText = text;
+
+    box.appendChild(div);
+
+    // limit stack
+    if (box.children.length > 5) {
+        box.removeChild(box.firstChild);
+    }
+
+    setTimeout(() => {
+        div.style.opacity = "0";
+        setTimeout(() => div.remove(), 300);
     }, 3000);
+}
+
+socket.on("user_joined", (data) => {
+    showNotice(`+ ${data.username} joined`);
+});
+
+socket.on("user_left", (data) => {
+    showNotice(`- ${data.username} left`);
+});
+
+// ======================
+// ⌨️ ENTER TO SEND
+// ======================
+document.getElementById("msgInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        sendMessage();
+    }
 });
