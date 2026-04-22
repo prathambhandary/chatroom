@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firewave</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div id="topbar">
+    🔥 Firewave <span id="username"></span>
+</div>
+
+<div id="chat"></div>
+
+<div id="inputBox">
+    <input id="msgInput" placeholder="Say something..." maxlength="80">
+    <button onclick="sendMessage()">Send</button>
+    <span id="cooldown"></span>
+</div>
+
+<script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+<script src="/static/script.js"></script>
+
+</body>
+</html>
