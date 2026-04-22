@@ -20,7 +20,8 @@ def generate_username():
                 break
     return username
 
-@app.route("/")
+
+@app.route("/")  
 def index():
     return render_template("index.html")
 
