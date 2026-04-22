@@ -1,49 +1,282 @@
-body {
-    margin: 0;
-    background: #0f172a;
-    color: white;
-    font-family: sans-serif;
+/* =========================
+   🔥 Firewave – UI Styles
+   Clean • Modern • Responsive
+   ========================= */
+
+/* ---------- CSS Variables ---------- */
+:root {
+  /* Base */
+  --bg: #0b0f1a;
+  --surface: #111827;
+  --surface-2: #1f2937;
+  --border: #222;
+
+  /* Text */
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+
+  /* Fire accents */
+  --primary: #ff6b00;
+  --primary-soft: #ff8a3d;
+  --primary-2: #ff2d55;
+  --primary-glow: rgba(255, 107, 0, 0.25);
+
+  /* Secondary */
+  --secondary: #38bdf8;
+
+  /* Radius & spacing */
+  --r: 10px;
+  --r-sm: 8px;
+  --pad: 12px;
 }
 
+/* ---------- Reset ---------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: radial-gradient(1200px 600px at 50% 120%, rgba(255,107,0,0.08), transparent 60%), var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  overflow: hidden;
+}
+
+/* ---------- Layout ---------- */
 #topbar {
-    padding: 10px;
-    background: #111827;
-    border-bottom: 1px solid #333;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 50px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+
+  box-shadow: 0 1px 0 var(--primary-glow);
+  z-index: 10;
 }
 
 #chat {
-    height: 80vh;
-    overflow: hidden;
-    padding: 10px;
-}
+  position: absolute;
+  top: 50px;
+  bottom: 70px;
+  width: 100%;
 
-.message {
-    margin: 5px 0;
-    padding: 8px;
-    background: #1f2937;
-    border-radius: 8px;
-    animation: fadeIn 0.3s;
-}
-
-@keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity: 1;}
-}
-
-.reactions span {
-    margin-right: 10px;
-    cursor: pointer;
+  padding: 12px;
+  overflow: hidden; /* important for floating feel */
 }
 
 #inputBox {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background: #111827;
-    padding: 10px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 70px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
 }
 
-input {
-    width: 70%;
-    padding: 8px;
+/* ---------- Topbar Elements ---------- */
+#username {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+#userCount {
+  font-size: 14px;
+  color: var(--muted);
+  transition: 0.2s;
+}
+
+#typingStatus {
+  font-size: 13px;
+  color: var(--primary);
+}
+
+/* ---------- Input ---------- */
+#msgInput {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  outline: none;
+}
+
+#msgInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 6px var(--primary-glow);
+}
+
+/* ---------- Button ---------- */
+button {
+  padding: 10px 16px;
+  border-radius: var(--r-sm);
+  border: none;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+
+  background: linear-gradient(90deg, var(--primary), var(--primary-2));
+  transition: 0.2s;
+}
+
+button:hover {
+  filter: brightness(1.15);
+}
+
+/* ---------- Cooldown ---------- */
+#cooldown {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- Messages ---------- */
+.message {
+  position: relative;
+  margin: 6px 0;
+  padding: 10px 12px;
+
+  background: var(--surface-2);
+  border-radius: var(--r);
+
+  max-width: 80%;
+  word-wrap: break-word;
+
+  transition: 0.25s ease;
+}
+
+/* Hover glow */
+.message:hover {
+  box-shadow: 0 0 12px var(--primary-glow);
+}
+
+/* Your messages */
+.message.you b {
+  color: var(--primary-soft);
+}
+
+/* Username */
+.message b {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+/* ---------- Reactions ---------- */
+.reactions {
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.reactions span {
+  margin-right: 10px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: 0.15s;
+}
+
+.reactions span:hover {
+  color: var(--primary);
+  text-shadow: 0 0 6px var(--primary-glow);
+}
+
+/* ---------- Notifications ---------- */
+#notifications {
+  position: fixed;
+  top: 60px;
+  right: 12px;
+  z-index: 20;
+}
+
+.notice {
+  background: var(--surface-2);
+  border-left: 3px solid var(--primary);
+
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  border-radius: var(--r-sm);
+
+  font-size: 13px;
+  opacity: 0.95;
+
+  transition: 0.3s;
+}
+
+/* ---------- Animations ---------- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message {
+  animation: fadeIn 0.25s ease;
+}
+
+/* Heat pulse (future use for hot messages) */
+@keyframes heatPulse {
+  0% { box-shadow: 0 0 0 rgba(255, 107, 0, 0); }
+  50% { box-shadow: 0 0 20px rgba(255, 107, 0, 0.4); }
+  100% { box-shadow: 0 0 0 rgba(255, 107, 0, 0); }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  #topbar {
+    font-size: 14px;
+  }
+
+  #msgInput {
+    font-size: 14px;
+  }
+
+  .message {
+    max-width: 95%;
+    font-size: 14px;
+  }
+
+  button {
+    padding: 8px 12px;
+  }
+}
+
+/* ---------- Scroll polish (if enabled later) ---------- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+.message.dying {
+    opacity: 0.3;
+    filter: blur(2px);
 }
