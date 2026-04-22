@@ -40,6 +40,7 @@ def handle_connect():
 
     users[request.sid] = username
     emit("assign_username", username)
+    socketio.emit("user_count", len(users))
 
     with lock:
         active_messages = []
@@ -60,6 +61,7 @@ def handle_disconnect():
     user_last_message.pop(request.sid, None)
     if username:
         print(f"--- User disconnected: {username} ---")
+        socketio.emit("user_count", len(users))
 
 @socketio.on("send_message")
 def handle_message(data):
